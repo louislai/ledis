@@ -1,7 +1,8 @@
 require 'set'
 
-LEDIS_COMMANDS = ['flushdb', 'set', 'get',
-                  'llen', 'rpush', 'lpop', 'rpop', 'lrange', 'del',
+LEDIS_COMMANDS = ['flushdb', 'expire', 'ttl', 'del',
+                  'set', 'get',
+                  'llen', 'rpush', 'lpop', 'rpop', 'lrange',
                   'sadd', 'scard', 'srem', 'smembers', 'sinter']
 
 class Ledis
@@ -9,13 +10,23 @@ class Ledis
 
   def initialize
     @storage = {}
-    @timestamp = Time.now
+    @expiry = {}
   end
 
   def flushdb
     @storage = {}
-    @timestamp = Time.now
     'OK'
+  end
+
+  def expire(key, seconds)
+    @expiry[key] = Time.at(Time.now.to_i + seconds.to_i)
+    'OK'
+  end
+
+  def ttl(key)
+    return 0 unless @storage[key]
+    (Time.now - @expiry[key]).to_i
+    1
   end
 
   def set(key, value)
@@ -28,7 +39,7 @@ class Ledis
   end
 
   def del(key)
-    @storage.delete(key)
+    clean_key(key)
     'OK'
   end
 
@@ -89,7 +100,22 @@ class Ledis
   end
 
   def handle_command(command)
+    clean_expired
     return 'ECOM' unless LEDIS_COMMANDS.include? command[0].downcase
     send(command[0].downcase, *command[1..-1])
+  end
+
+  private
+  def clean_key(key)
+    @storage.delete(key)
+    @expiry.delete(key)
+  end
+
+  def clean_expired
+    keys_to_delete = []
+    @expired.each do |key, value|
+      keys_to_delete << key if value < Time.now
+    end
+    keys_to_delete.each { |key| clean_key(key) }
   end
 end

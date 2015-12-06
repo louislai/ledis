@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'json'
 require './ledis'
 
 class MyApp < Sinatra::Base
@@ -8,7 +9,9 @@ class MyApp < Sinatra::Base
   end
 
   post '/ledis' do
-    byebug
+    response = @ledis.handle_command params[:command].split
+    content_type :json
+    { response: response }.to_json
   end
 
   get '/' do

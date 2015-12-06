@@ -33,8 +33,8 @@ class Ledis
   end
 
   def sadd(key, *others)
-    return 'EINV' if others.blank?
-    @storage[key] = Set.new
+    return 'EINV' if others.empty?
+    @storage[key] ||= Set.new
     others.each { |other| @storage[key].add other }
     'OK'
   end
@@ -45,7 +45,7 @@ class Ledis
   end
 
   def srem(key, *others)
-    return 'EINV' if others.blank?
+    return 'EINV' if others.empty?
     return 'EKTYP' unless @storage[key]
     others.each { |other| @storage[key].delete other }
     'OK'
@@ -62,7 +62,7 @@ class Ledis
   end
 
   def rpush(key, *others)
-    return 'EINV' if others.blank?
+    return 'EINV' if others.empty?
     @storage[key] ||= []
     others.each { |other| @storage[key] << other }
     @storage[key].size
@@ -84,7 +84,7 @@ class Ledis
   end
 
   def sinter(*sets)
-    return [].to_json if sets.blank?
+    return [].to_json if sets.empty?
     sets.reduce(:&).to_json
   end
 

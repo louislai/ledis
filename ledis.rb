@@ -1,4 +1,8 @@
-LEDIS_COMMANDS = ['flushdb', 'set', 'get', 'llen', 'rpush', 'lpop', 'rpop', 'lrange']
+require 'set'
+
+LEDIS_COMMANDS = ['flushdb', 'set', 'get', 'llen', 'rpush',
+                  'lpop', 'rpop', 'lrange', 'del',
+                  'sadd', 'scard', 'srem', 'smembers']
 
 class Ledis
   attr_accessor :storage, :timestamp
@@ -20,7 +24,34 @@ class Ledis
   end
 
   def get(key)
-    @storage[key]
+    @storage[key] || 'EKTYP'
+  end
+
+  def del(key)
+    @storage.delete(key)
+    'OK'
+  end
+
+  def sadd(key, *others)
+    @storage[key] = Set.new
+    others.each { |other| @storage[key].add other }
+    'OK'
+  end
+
+  def scard(key)
+    return 'EKTYP' unless @storage[key]
+    @storage[key].size
+  end
+
+  def srem(key, *other)
+    return 'EKTYP' unless @storage[key]
+    others.each { |other| @storage[key].delete other }
+    'OK'
+  end
+
+  def smembers(key)
+    return 'EKTYP' unless @storage[key]
+    @storage[key].to_a.join(' ')
   end
 
   def handle_command(command)

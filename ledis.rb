@@ -11,6 +11,7 @@ class Ledis
   def flushdb
     @storage = {}
     @timestamp = Time.now
+    'OK'
   end
 
   def set(key, value)

@@ -8,7 +8,7 @@ class MyApp < Sinatra::Base
     @ledis = ::Ledis.new
   end
 
-  post '/ledis' do
+  post '/redis' do
     response = @ledis.handle_command params[:command].split
     content_type :json
     { response: response }.to_json

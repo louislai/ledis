@@ -113,7 +113,7 @@ class Ledis
 
   def clean_expired
     keys_to_delete = []
-    @expired.each do |key, value|
+    @expiry.each do |key, value|
       keys_to_delete << key if value < Time.now
     end
     keys_to_delete.each { |key| clean_key(key) }
